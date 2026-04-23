@@ -1,0 +1,9 @@
+{
+	"name": "adf-project-gouri",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "52b7ba18-3af0-4036-9140-0f3e480215ca",
+		"tenantId": "89569dac-54bb-4ede-814c-8fda7d225f76"
+	}
+}
