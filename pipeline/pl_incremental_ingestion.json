@@ -81,7 +81,7 @@
 									"parameters": {
 										"container": "bronze",
 										"folder": {
-											"value": "@{item().TableName}_cdc",
+											"value": "@item().TableName",
 											"type": "Expression"
 										},
 										"file": {
@@ -277,7 +277,7 @@
 												"parameters": {
 													"container": "bronze",
 													"folder": {
-														"value": "@{item().TableName}_cdc",
+														"value": "@item().TableName",
 														"type": "Expression"
 													},
 													"cdcFileName": "cdc_latest.json"
