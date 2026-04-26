@@ -81,7 +81,7 @@
 									"parameters": {
 										"container": "bronze",
 										"folder": {
-											"value": "@{item().TableName}_cdc",
+											"value": "@item().TableName",
 											"type": "Expression"
 										},
 										"file": {
@@ -323,6 +323,8 @@
 			{
 				"name": "Pipeline Alerts",
 				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "ForEach incremental",
@@ -353,7 +355,38 @@
 		"parameters": {
 			"TableList": {
 				"type": "array",
-				"defaultValue": "[{\"TableName\": “DimArtist”,      “SchemaName”: “dbo”, “cdc_column”: “updated_at”, \"backfilling_date\": \"\" },    {     “TableName”: “DimDate”,      “SchemaName”: “dbo”,      “cdc_column”: “date”, \"backfilling_date\": \"\"   },    {     “TableName”: “DimTrack”,      “SchemaName”: “dbo”,      “cdc_column”: “updated_at”, \"backfilling_date\": \"\"   },    {     “TableName”: “DimUser”,      “SchemaName”: “dbo”,      “cdc_column”: “updated_at”, \"backfilling_date\": \"\"}, {\"TableName\": “FactStream”, “SchemaName”: “dbo”, “cdc_column”: “stream_timestamp”, \"backfilling_date\": \"\" }]"
+				"defaultValue": [
+					{
+						"TableName": "DimArtist",
+						"SchemaName": "dbo",
+						"cdc_column": "updated_at",
+						"backfilling_date": ""
+					},
+					{
+						"TableName": "DimDate",
+						"SchemaName": "dbo",
+						"cdc_column": "date",
+						"backfilling_date": ""
+					},
+					{
+						"TableName": "DimTrack",
+						"SchemaName": "dbo",
+						"cdc_column": "updated_at",
+						"backfilling_date": ""
+					},
+					{
+						"TableName": "DimUser",
+						"SchemaName": "dbo",
+						"cdc_column": "updated_at",
+						"backfilling_date": ""
+					},
+					{
+						"TableName": "FactStream",
+						"SchemaName": "dbo",
+						"cdc_column": "stream_timestamp",
+						"backfilling_date": ""
+					}
+				]
 			}
 		},
 		"variables": {
