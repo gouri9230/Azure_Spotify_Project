@@ -277,7 +277,7 @@
 												"parameters": {
 													"container": "bronze",
 													"folder": {
-														"value": "@item().TableName",
+														"value": "@{item().TableName}_cdc",
 														"type": "Expression"
 													},
 													"cdcFileName": "cdc_latest.json"
@@ -323,6 +323,8 @@
 			{
 				"name": "Pipeline Alerts",
 				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "ForEach incremental",
