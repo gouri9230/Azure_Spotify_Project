@@ -71,6 +71,7 @@ spotify-data-lakehouse/
 │
 ├── adf/
 │   ├── pl_incremental_ingestion.json    # ADF pipeline definitions
+|       └── logic_app activity           # Azure Logic Apps email alert definition
 │   └── parameter_tableList.json         # Parameter value definition for dynamic & automatic processing of tables
 │
 ├── databricks/
@@ -85,14 +86,42 @@ spotify-data-lakehouse/
 ├── unity_catalog/
 │   └── setup/                  # Metastore, schemas, external locations setup
 │
-├── logic_apps/
-│   └── alert_pipeline.json     # Azure Logic Apps email alert definition
-│
 ├── media/
-│   └── screenshots/            # Architecture diagrams and pipeline screenshots
+│   └── screenshots/            # pipeline screenshots & video
 │
 └── README.md
 ```
+## Pipeline Details
+
+### Bronze Layer
+
+- **Source:** Azure SQL Database (Spotify dataset)
+- **Tool:** Azure Data Factory with 8 parameterized activities
+- **Loading strategy:** JSON config file drives incremental load logic - no watermark tables or stored procedures needed
+- **Output:** Raw data stored in **Parquet format** in ADLS Gen2 Bronze container
+
+### Silver Layer
+
+- **Tool:** Databricks (PySpark + Spark Structured Streaming)
+- **Ingestion:** Autoloader reads new files from Bronze incrementally
+- **Schema evolution:** Automatically handled - no pipeline changes needed when source schema changes
+- **Idempotency:** Spark Structured Streaming ensures no duplicate processing
+- **Transformations applied:**
+  - Capitalize `user_name` column in dimension user table
+  - Remove special characters from `track_name` column
+  - Create new `durationFlag` column: `Low` (<100s), `Medium` (<300s), `High` (>300s)
+  - Drop auto-generated `_rescued_data` column from all tables
+- **Metadata-driven framework:** Jinja templates dynamically generate SQL and PySpark transformation logic - eliminating repetitive per-table code
+- **Custom utilities:** `utils/` folder contains reusable functions (e.g. `dropColumns()`)
+- **Output:** Delta format tables registered in Unity Catalog Silver schema
+
+### Gold Layer
+
+- **Tool:** Delta Live Tables (DLT) - declarative pipeline
+- **Pattern:** Staging area from Silver → Gold tables
+- **SCD Type 2:** Auto CDC flow automatically generates history columns and tracks changes over time
+- **Output:** Star schema with 4 dimension tables and 1 fact table registered in Unity Catalog Gold schema
+  
 ## Data Model
 
 **Star Schema** built on Spotify data:
@@ -121,11 +150,24 @@ spotify-data-lakehouse/
 
 All dimension tables include **SCD Type 2** history columns generated automatically by DLT auto CDC.
 
+## Data Quality
+
+Data quality validation is enforced in the **Gold layer** using **Delta Live Tables Expectations**
+- Rules are defined declaratively in DLT pipeline code
+- Invalid records are **dropped** from the pipeline (`expect_or_drop`)
+- Keeps Gold layer clean and analytics-ready
+
 ## CI/CD & Deployment
 
 - Pipeline code is packaged using **Databricks Asset Bundles** (`databricks.yaml`)
 - All code is version-controlled and pushed to **GitHub**
 - Asset Bundle enables consistent deployment across environments
+
+## Monitoring & Alerting
+
+- **Azure Logic Apps** monitors ADF pipeline runs
+- On pipeline **failure**, Logic Apps triggers an HTTP API call
+- An **automated email** is sent to the pipeline owner with failure status and details
 
 ## Setup & Installation
 
